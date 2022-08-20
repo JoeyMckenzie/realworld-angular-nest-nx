@@ -1,0 +1,10 @@
+{
+  "$schema": "./node_modules/nx/schemas/workspace-schema.json",
+  "version": 2,
+  "projects": {
+    "api": "apps/api",
+    "api-interfaces": "libs/api-interfaces",
+    "conduit-web": "apps/conduit-web",
+    "conduit-web-e2e": "apps/conduit-web-e2e"
+  }
+}

@@ -1,0 +1,95 @@
+{
+  "projectType": "application",
+  "sourceRoot": "apps/conduit-web/src",
+  "prefix": "realworld-angular-nest-nx",
+  "targets": {
+    "build": {
+      "executor": "@angular-devkit/build-angular:browser",
+      "outputs": ["{options.outputPath}"],
+      "options": {
+        "outputPath": "dist/apps/conduit-web",
+        "index": "apps/conduit-web/src/index.html",
+        "main": "apps/conduit-web/src/main.ts",
+        "polyfills": "apps/conduit-web/src/polyfills.ts",
+        "tsConfig": "apps/conduit-web/tsconfig.app.json",
+        "assets": [
+          "apps/conduit-web/src/favicon.ico",
+          "apps/conduit-web/src/assets"
+        ],
+        "styles": ["apps/conduit-web/src/styles.css"],
+        "scripts": []
+      },
+      "configurations": {
+        "production": {
+          "budgets": [
+            {
+              "type": "initial",
+              "maximumWarning": "500kb",
+              "maximumError": "1mb"
+            },
+            {
+              "type": "anyComponentStyle",
+              "maximumWarning": "2kb",
+              "maximumError": "4kb"
+            }
+          ],
+          "fileReplacements": [
+            {
+              "replace": "apps/conduit-web/src/environments/environment.ts",
+              "with": "apps/conduit-web/src/environments/environment.prod.ts"
+            }
+          ],
+          "outputHashing": "all"
+        },
+        "development": {
+          "buildOptimizer": false,
+          "optimization": false,
+          "vendorChunk": true,
+          "extractLicenses": false,
+          "sourceMap": true,
+          "namedChunks": true
+        }
+      },
+      "defaultConfiguration": "production"
+    },
+    "serve": {
+      "executor": "@angular-devkit/build-angular:dev-server",
+      "configurations": {
+        "production": {
+          "browserTarget": "conduit-web:build:production"
+        },
+        "development": {
+          "browserTarget": "conduit-web:build:development"
+        }
+      },
+      "defaultConfiguration": "development",
+      "options": {
+        "proxyConfig": "apps/conduit-web/proxy.conf.json"
+      }
+    },
+    "extract-i18n": {
+      "executor": "@angular-devkit/build-angular:extract-i18n",
+      "options": {
+        "browserTarget": "conduit-web:build"
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "options": {
+        "lintFilePatterns": [
+          "apps/conduit-web/**/*.ts",
+          "apps/conduit-web/**/*.html"
+        ]
+      }
+    },
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/apps/conduit-web"],
+      "options": {
+        "jestConfig": "apps/conduit-web/jest.config.ts",
+        "passWithNoTests": true
+      }
+    }
+  },
+  "tags": []
+}
