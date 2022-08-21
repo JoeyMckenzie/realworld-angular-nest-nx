@@ -91,5 +91,6 @@
       }
     }
   },
-  "tags": []
+  "tags": ["scope:conduit-web"],
+  "implicitDependencies": ["conduit-web-feature-auth", "conduit-web-ui-common"]
 }
