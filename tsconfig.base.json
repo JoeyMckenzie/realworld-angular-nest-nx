@@ -15,6 +15,9 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
+      "@realworld-angular-nest-nx/conduit-api/feature-auth": [
+        "libs/conduit-api/feature-auth/src/index.ts"
+      ],
       "@realworld-angular-nest-nx/conduit-web/data-access-auth": [
         "libs/conduit-web/data-access-auth/src/index.ts"
       ],

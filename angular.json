@@ -3,6 +3,7 @@
   "version": 2,
   "projects": {
     "conduit-api": "apps/conduit-api",
+    "conduit-api-feature-auth": "libs/conduit-api/feature-auth",
     "conduit-web": "apps/conduit-web",
     "conduit-web-data-access-auth": "libs/conduit-web/data-access-auth",
     "conduit-web-e2e": "apps/conduit-web-e2e",
