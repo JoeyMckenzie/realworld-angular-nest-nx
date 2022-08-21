@@ -2,9 +2,14 @@
   "$schema": "./node_modules/nx/schemas/workspace-schema.json",
   "version": 2,
   "projects": {
-    "api": "apps/api",
-    "api-interfaces": "libs/api-interfaces",
+    "conduit-api": "apps/conduit-api",
     "conduit-web": "apps/conduit-web",
-    "conduit-web-e2e": "apps/conduit-web-e2e"
+    "conduit-web-data-access-auth": "libs/conduit-web/data-access-auth",
+    "conduit-web-e2e": "apps/conduit-web-e2e",
+    "conduit-web-feature-auth": "libs/conduit-web/feature-auth",
+    "conduit-web-ui-auth": "libs/conduit-web/ui-auth",
+    "conduit-web-ui-common": "libs/conduit-web/ui-common",
+    "conduit-web-utils-common": "libs/conduit-web/utils-common",
+    "global": "libs/global"
   }
 }

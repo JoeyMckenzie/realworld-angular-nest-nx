@@ -1,0 +1,25 @@
+{
+  "projectType": "library",
+  "sourceRoot": "libs/conduit-web/utils-common/src",
+  "prefix": "realworld-angular-nest-nx",
+  "targets": {
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/libs/conduit-web/utils-common"],
+      "options": {
+        "jestConfig": "libs/conduit-web/utils-common/jest.config.ts",
+        "passWithNoTests": true
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "options": {
+        "lintFilePatterns": [
+          "libs/conduit-web/utils-common/**/*.ts",
+          "libs/conduit-web/utils-common/**/*.html"
+        ]
+      }
+    }
+  },
+  "tags": []
+}

@@ -1,0 +1,25 @@
+{
+  "projectType": "library",
+  "sourceRoot": "libs/conduit-web/feature-auth/src",
+  "prefix": "realworld-angular-nest-nx",
+  "targets": {
+    "test": {
+      "executor": "@nrwl/jest:jest",
+      "outputs": ["coverage/libs/conduit-web/feature-auth"],
+      "options": {
+        "jestConfig": "libs/conduit-web/feature-auth/jest.config.ts",
+        "passWithNoTests": true
+      }
+    },
+    "lint": {
+      "executor": "@nrwl/linter:eslint",
+      "options": {
+        "lintFilePatterns": [
+          "libs/conduit-web/feature-auth/**/*.ts",
+          "libs/conduit-web/feature-auth/**/*.html"
+        ]
+      }
+    }
+  },
+  "tags": []
+}

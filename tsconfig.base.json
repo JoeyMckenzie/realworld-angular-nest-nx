@@ -15,9 +15,22 @@
     "skipDefaultLibCheck": true,
     "baseUrl": ".",
     "paths": {
-      "@realworld-angular-nest-nx/api-interfaces": [
-        "libs/api-interfaces/src/index.ts"
-      ]
+      "@realworld-angular-nest-nx/conduit-web/data-access-auth": [
+        "libs/conduit-web/data-access-auth/src/index.ts"
+      ],
+      "@realworld-angular-nest-nx/conduit-web/feature-auth": [
+        "libs/conduit-web/feature-auth/src/index.ts"
+      ],
+      "@realworld-angular-nest-nx/conduit-web/ui-auth": [
+        "libs/conduit-web/ui-auth/src/index.ts"
+      ],
+      "@realworld-angular-nest-nx/conduit-web/ui-common": [
+        "libs/conduit-web/ui-common/src/index.ts"
+      ],
+      "@realworld-angular-nest-nx/conduit-web/utils-common": [
+        "libs/conduit-web/utils-common/src/index.ts"
+      ],
+      "@realworld-angular-nest-nx/global": ["libs/global/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]
