@@ -1,12 +1,16 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
+import { APP_FILTER } from '@nestjs/core';
 import { ConduitApiFeatureAuthModule } from '@realworld-angular-nest-nx/conduit-api/feature-auth';
-
-import { AppController } from './app.controller';
-import { AppService } from './app.service';
+import { HttpExceptionFilter } from './http-exception-filter';
 
 @Module({
-  imports: [ConduitApiFeatureAuthModule],
-  controllers: [AppController],
-  providers: [AppService],
+  imports: [ConfigModule.forRoot(), ConduitApiFeatureAuthModule],
+  providers: [
+    {
+      provide: APP_FILTER,
+      useValue: HttpExceptionFilter,
+    },
+  ],
 })
 export class AppModule {}

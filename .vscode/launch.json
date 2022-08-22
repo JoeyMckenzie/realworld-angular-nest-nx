@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "type": "node",
+      "request": "launch",
+      "name": "Realworld API Debug",
+      "program": "${workspaceFolder}/apps/conduit-api/src/main.ts",
+      "preLaunchTask": "tsc: watch - apps/conduit-api/tsconfig.json",
+      "outFiles": ["${workspaceFolder}/dist/apps/conduit-sapi/**/*.js"],
+      "skipFiles": [
+        "${workspaceFolder}/node_modules/**/*.js",
+        "<node_internals>/**/*.js"
+      ]
+    }
+  ]
+}
