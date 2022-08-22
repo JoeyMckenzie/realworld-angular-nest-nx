@@ -22,6 +22,16 @@ export class RegisterUserDto {
   @IsString()
   @IsDefined()
   password?: string;
+
+  constructor(
+    private withUsername: string,
+    private withEmail: string,
+    private withPassword: string
+  ) {
+    this.username = this.withUsername;
+    this.email = this.withEmail;
+    this.password = this.withPassword;
+  }
 }
 
 export class RegisterUserRequest {
@@ -29,4 +39,12 @@ export class RegisterUserRequest {
   @Type(() => RegisterUserDto)
   @IsDefined()
   user?: RegisterUserDto;
+
+  constructor(
+    private username: string,
+    private email: string,
+    private password: string
+  ) {
+    this.user = new RegisterUserDto(this.username, this.email, this.password);
+  }
 }

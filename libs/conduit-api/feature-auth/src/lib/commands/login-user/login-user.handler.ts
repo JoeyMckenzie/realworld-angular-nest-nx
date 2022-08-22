@@ -2,7 +2,7 @@ import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { firstValueFrom, from } from 'rxjs';
 import { catchError, map, switchMap } from 'rxjs/operators';
-import { RegisterUserCommand } from './register-user.command';
+import { RegisterUserCommand } from './login-user.command';
 import { PrismaService } from '@realworld-angular-nest-nx/conduit-api/data-access-common';
 import {
   AuthenticationResponse,
@@ -18,13 +18,37 @@ export class RegisterUserHandler
   constructor(private readonly prisma: PrismaService) {}
 
   execute(command: RegisterUserCommand): Promise<AuthenticationResponse> {
-    const createUserIfNoneExists$ = from(
+    const existingUser$ = from(
       this.prisma.user.findFirst({
         where: {
           email: command.email,
         },
       })
+    );
+
+    const createUser$ = from(
+      this.prisma.user.create({
+        data: {
+          username: command.username,
+          email: command.email,
+          password: command.password,
+        },
+      })
     ).pipe(
+      map((user) => {
+        const mappedUser: UserDto = {
+          username: user.username,
+          email: user.email,
+          bio: user.bio,
+          image: user.image,
+          token: '',
+        };
+
+        return { user: mappedUser } as AuthenticationResponse;
+      })
+    );
+
+    const createUserIfNoneExists$ = existingUser$.pipe(
       switchMap((existingUser) => {
         if (existingUser) {
           throw new HttpException(
@@ -35,27 +59,7 @@ export class RegisterUserHandler
 
         this.logger.log(`creating user account for ${command.email}`);
 
-        return from(
-          this.prisma.user.create({
-            data: {
-              username: command.username,
-              email: command.email,
-              password: command.password,
-            },
-          })
-        ).pipe(
-          map((user) => {
-            const mappedUser: UserDto = {
-              username: user.username,
-              email: user.email,
-              bio: user.bio,
-              image: user.image,
-              token: 'stub-token',
-            };
-
-            return { user: mappedUser } as AuthenticationResponse;
-          })
-        );
+        return createUser$;
       }),
       catchError((error) => {
         this.logger.error(`error while creating user ${command.email}`);

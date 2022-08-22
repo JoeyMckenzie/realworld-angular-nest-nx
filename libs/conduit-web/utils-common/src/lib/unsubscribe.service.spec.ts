@@ -6,7 +6,9 @@ describe('UnsubscribeService', () => {
   let service: UnsubscribeService;
 
   beforeEach(() => {
-    TestBed.configureTestingModule({});
+    TestBed.configureTestingModule({
+      providers: [UnsubscribeService],
+    });
     service = TestBed.inject(UnsubscribeService);
   });
 
