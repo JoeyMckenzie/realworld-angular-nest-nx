@@ -1,10 +1,10 @@
 import { Test } from '@nestjs/testing';
 import { from, of } from 'rxjs';
-import { RegisterUserHandler } from './register-user.handler';
+import { LoginUserHandler } from './login-user.handler';
 import { HttpStatus } from '@nestjs/common';
 import {
   AuthenticationResponse,
-  RegisterUserRequest,
+  LoginUserRequest,
 } from '@realworld-angular-nest-nx/global';
 import {
   mockAuthService,
@@ -16,31 +16,26 @@ import {
 import { UserService } from '../../services/user.service';
 import { AuthService } from '../../services/auth.service';
 import { TokenService } from '../../services/token.service';
-import { RegisterUserCommand } from './register-user.command';
+import { LoginUserCommand } from './login-user.command';
 
-const request = new RegisterUserRequest(
-  user.username,
-  user.email,
-  user.password
-);
+const request = new LoginUserRequest(user.email, user.password);
 
-const command = new RegisterUserCommand(request);
+const command = new LoginUserCommand(request);
 
-describe(RegisterUserHandler.name, () => {
-  let handler: RegisterUserHandler;
+describe(LoginUserHandler.name, () => {
+  let handler: LoginUserHandler;
   let userService: UserService;
   let authService: AuthService;
   let tokenService: TokenService;
 
   let getExistingUserSpy: jest.SpyInstance;
-  let generatePasswordSpy: jest.SpyInstance;
-  let createUserSpy: jest.SpyInstance;
+  let verifyPasswordSpy: jest.SpyInstance;
   let generateTokenSpy: jest.SpyInstance;
 
   beforeEach(async () => {
     const module = await Test.createTestingModule({
       providers: [
-        RegisterUserHandler,
+        LoginUserHandler,
         {
           provide: UserService,
           useValue: mockUserService,
@@ -56,36 +51,29 @@ describe(RegisterUserHandler.name, () => {
       ],
     }).compile();
 
-    handler = module.get(RegisterUserHandler);
+    handler = module.get(LoginUserHandler);
     userService = module.get(UserService);
     authService = module.get(AuthService);
     tokenService = module.get(TokenService);
 
     getExistingUserSpy = jest.spyOn(userService, 'getUserByEmailOrUsername');
-    createUserSpy = jest.spyOn(userService, 'createUser');
     generateTokenSpy = jest.spyOn(tokenService, 'generateToken');
-    generatePasswordSpy = jest.spyOn(
-      authService,
-      'generateHashedPasswordWithSalt'
-    );
+    verifyPasswordSpy = jest.spyOn(authService, 'validatePassword');
   });
 
   afterEach(() => {
     getExistingUserSpy.mockReset();
-    createUserSpy.mockReset();
     generateTokenSpy.mockReset();
-    generatePasswordSpy.mockReset();
+    verifyPasswordSpy.mockReset();
   });
 
-  it('should create the user when none is found', (done) => {
+  it('should login the user when user exists and password is valid', (done) => {
     // arrange
-    getExistingUserSpy.mockReturnValue(of(undefined));
-    createUserSpy.mockReturnValue(of(user));
+    getExistingUserSpy.mockReturnValue(of(user));
+
     generateTokenSpy.mockReturnValue(response.user.token);
-    generatePasswordSpy.mockReturnValue({
-      password: user.password,
-      salt: user.salt,
-    });
+
+    verifyPasswordSpy.mockReturnValue(true);
 
     // act
     from(handler.execute(command)).subscribe(
@@ -93,27 +81,47 @@ describe(RegisterUserHandler.name, () => {
         // assert
         expect(response).toStrictEqual(response);
         expect(getExistingUserSpy).toHaveBeenCalledTimes(1);
-        expect(generatePasswordSpy).toHaveBeenCalledTimes(1);
-        expect(createUserSpy).toHaveBeenCalledTimes(1);
+        expect(verifyPasswordSpy).toHaveBeenCalledTimes(1);
         expect(generateTokenSpy).toHaveBeenCalledTimes(1);
         done();
       }
     );
   });
 
-  it('should return an error when already user exists', (done) => {
+  it('should should return an error when user exists and password is invalid', (done) => {
     // arrange
     getExistingUserSpy.mockReturnValue(of(user));
+
+    generateTokenSpy.mockReturnValue(response.user.token);
+
+    verifyPasswordSpy.mockReturnValue(false);
+
+    // act
+    from(handler.execute(command)).subscribe(
+      (response: AuthenticationResponse) => {
+        // assert
+        expect(response).not.toBeUndefined;
+        expect(response.statusCode).toBe(HttpStatus.UNAUTHORIZED);
+        expect(getExistingUserSpy).toHaveBeenCalledTimes(1);
+        expect(verifyPasswordSpy).toHaveBeenCalledTimes(1);
+        expect(generateTokenSpy).toHaveBeenCalledTimes(0);
+        done();
+      }
+    );
+  });
+
+  it('should return an error when user does not exist', (done) => {
+    // arrange
+    getExistingUserSpy.mockReturnValue(of(undefined));
 
     // act
     from(handler.execute(command)).subscribe(
       (response: AuthenticationResponse) => {
         // assert
         expect(response).not.toBeUndefined();
-        expect(response.statusCode).toBe(HttpStatus.CONFLICT);
+        expect(response.statusCode).toBe(HttpStatus.NOT_FOUND);
         expect(getExistingUserSpy).toHaveBeenCalledTimes(1);
-        expect(generatePasswordSpy).toHaveBeenCalledTimes(0);
-        expect(createUserSpy).toHaveBeenCalledTimes(0);
+        expect(verifyPasswordSpy).toHaveBeenCalledTimes(0);
         expect(generateTokenSpy).toHaveBeenCalledTimes(0);
         done();
       }
@@ -122,9 +130,9 @@ describe(RegisterUserHandler.name, () => {
 
   it('should return an error when downstream services are exceptional', (done) => {
     // arrange
-    getExistingUserSpy.mockReturnValue(of(undefined));
+    getExistingUserSpy.mockReturnValue(of(user));
 
-    generatePasswordSpy.mockImplementationOnce(() => {
+    verifyPasswordSpy.mockImplementationOnce(() => {
       throw new Error('stub error');
     });
 
@@ -135,8 +143,7 @@ describe(RegisterUserHandler.name, () => {
         expect(response).not.toBeUndefined();
         expect(response.statusCode).toBe(HttpStatus.INTERNAL_SERVER_ERROR);
         expect(getExistingUserSpy).toHaveBeenCalledTimes(1);
-        expect(generatePasswordSpy).toHaveBeenCalledTimes(1);
-        expect(createUserSpy).toHaveBeenCalledTimes(0);
+        expect(verifyPasswordSpy).toHaveBeenCalledTimes(1);
         expect(generateTokenSpy).toHaveBeenCalledTimes(0);
         done();
       }

@@ -1,4 +1,6 @@
-export interface AuthenticationResponse {
+import { ErrorResponse } from './error.responses';
+
+export interface AuthenticationResponse extends ErrorResponse {
   readonly user: UserDto;
 }
 

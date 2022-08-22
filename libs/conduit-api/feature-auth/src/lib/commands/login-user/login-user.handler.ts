@@ -1,73 +1,89 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
-import { HttpException, HttpStatus, Logger } from '@nestjs/common';
-import { firstValueFrom, from } from 'rxjs';
-import { catchError, map, switchMap } from 'rxjs/operators';
-import { RegisterUserCommand } from './login-user.command';
-import { PrismaService } from '@realworld-angular-nest-nx/conduit-api/data-access-common';
+import { HttpStatus, Logger } from '@nestjs/common';
+import { firstValueFrom, of } from 'rxjs';
+import { catchError, switchMap } from 'rxjs/operators';
+import { LoginUserCommand } from './login-user.command';
 import {
   AuthenticationResponse,
   UserDto,
+  ofErrors,
 } from '@realworld-angular-nest-nx/global';
+import { TokenService } from '../../services/token.service';
+import { UserService } from '../../services/user.service';
+import { AuthService } from '../../services/auth.service';
 
-@CommandHandler(RegisterUserCommand)
-export class RegisterUserHandler
-  implements ICommandHandler<RegisterUserCommand>
-{
-  private readonly logger = new Logger(RegisterUserHandler.name);
+@CommandHandler(LoginUserCommand)
+export class LoginUserHandler implements ICommandHandler<LoginUserCommand> {
+  private readonly logger = new Logger(LoginUserHandler.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly tokenService: TokenService,
+    private readonly userService: UserService
+  ) {}
 
-  execute(command: RegisterUserCommand): Promise<AuthenticationResponse> {
-    const existingUser$ = from(
-      this.prisma.user.findFirst({
-        where: {
-          email: command.email,
-        },
-      })
-    );
+  execute(command: LoginUserCommand): Promise<AuthenticationResponse> {
+    const loginUserIfExists$ = this.userService
+      .getUserByEmailOrUsername(command.email, command.username)
+      .pipe(
+        switchMap((existingUser) => {
+          if (!existingUser) {
+            this.logger.error('user was not found');
+            return ofErrors<AuthenticationResponse>(
+              {
+                user: ['user does not exist'],
+              },
+              HttpStatus.NOT_FOUND
+            );
+          }
 
-    const createUser$ = from(
-      this.prisma.user.create({
-        data: {
-          username: command.username,
-          email: command.email,
-          password: command.password,
-        },
-      })
-    ).pipe(
-      map((user) => {
-        const mappedUser: UserDto = {
-          username: user.username,
-          email: user.email,
-          bio: user.bio,
-          image: user.image,
-          token: '',
-        };
-
-        return { user: mappedUser } as AuthenticationResponse;
-      })
-    );
-
-    const createUserIfNoneExists$ = existingUser$.pipe(
-      switchMap((existingUser) => {
-        if (existingUser) {
-          throw new HttpException(
-            { email: [`user with email ${command.email} already exists`] },
-            HttpStatus.BAD_REQUEST
+          this.logger.log(
+            `retrieving user account for ${command.email}, verifying password`
           );
-        }
 
-        this.logger.log(`creating user account for ${command.email}`);
+          const isValidPassword = this.authService.validatePassword(
+            command.password,
+            existingUser.password,
+            existingUser.salt
+          );
 
-        return createUser$;
-      }),
-      catchError((error) => {
-        this.logger.error(`error while creating user ${command.email}`);
-        this.logger.error(error);
-        throw error;
-      })
-    );
+          if (!isValidPassword) {
+            this.logger.error('login attempt was invalid');
+            return ofErrors<AuthenticationResponse>(
+              {
+                user: ['invalid password for user'],
+              },
+              HttpStatus.UNAUTHORIZED
+            );
+          }
 
-    return firstValueFrom(createUserIfNoneExists$);
+          const token = this.tokenService.generateToken(
+            existingUser.id,
+            existingUser.username,
+            existingUser.email
+          );
+
+          const mappedUser: UserDto = {
+            username: existingUser.username,
+            email: existingUser.email,
+            bio: existingUser.bio,
+            image: existingUser.image,
+            token,
+          };
+
+          return of({ user: mappedUser } as AuthenticationResponse);
+        }),
+        catchError((error) => {
+          this.logger.error(error);
+          return ofErrors<AuthenticationResponse>(
+            {
+              errors: [error.toString()],
+            },
+            HttpStatus.INTERNAL_SERVER_ERROR
+          );
+        })
+      );
+
+    return firstValueFrom(loginUserIfExists$);
   }
 }

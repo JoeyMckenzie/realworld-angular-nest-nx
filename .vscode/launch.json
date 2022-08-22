@@ -7,7 +7,7 @@
       "name": "Realworld API Debug",
       "program": "${workspaceFolder}/apps/conduit-api/src/main.ts",
       "preLaunchTask": "tsc: watch - apps/conduit-api/tsconfig.json",
-      "outFiles": ["${workspaceFolder}/dist/apps/conduit-sapi/**/*.js"],
+      "outFiles": ["${workspaceFolder}/dist/apps/conduit-api/**/*.js"],
       "skipFiles": [
         "${workspaceFolder}/node_modules/**/*.js",
         "<node_internals>/**/*.js"
