@@ -8,7 +8,7 @@
     "start": "nx serve",
     "build": "nx build",
     "test": "nx test",
-    "test:affected": "nx test --affected",
+    "test:affected": "nx run-many --target=test --all",
     "prepare": "husky install"
   },
   "lint-staged": {
