@@ -7,6 +7,16 @@ import { Observable, from } from 'rxjs';
 export class UserService {
   constructor(private prisma: PrismaService) {}
 
+  getById(userId: string): Observable<User> {
+    const existingUser = this.prisma.user.findFirst({
+      where: {
+        id: userId,
+      },
+    });
+
+    return from(existingUser);
+  }
+
   getUserByEmailOrUsername(email: string, username: string): Observable<User> {
     const existingUser = this.prisma.user.findFirst({
       where: {
@@ -18,6 +28,20 @@ export class UserService {
     });
 
     return from(existingUser);
+  }
+
+  getUserByEmailOrUsernameAsPromise(
+    email: string,
+    username: string
+  ): Promise<User> {
+    return this.prisma.user.findFirst({
+      where: {
+        username,
+        OR: {
+          email,
+        },
+      },
+    });
   }
 
   createUser(

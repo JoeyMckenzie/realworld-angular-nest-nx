@@ -1,10 +1,8 @@
 import { HttpStatus } from '@nestjs/common';
 import { Observable, of } from 'rxjs';
 
-export type ApiErrors = string[];
-
 export type ErrorCollection = {
-  [key: string]: string[];
+  [key: string]: string | string[];
 };
 
 export function ofErrors<TResponse extends ErrorResponse>(
@@ -17,13 +15,17 @@ export function ofErrors<TResponse extends ErrorResponse>(
   } as TResponse);
 }
 
+export function withErrors<TResponse extends ErrorResponse>(
+  errors: ErrorCollection,
+  statusCode: HttpStatus
+): TResponse {
+  return {
+    errors,
+    statusCode,
+  } as TResponse;
+}
+
 export interface ErrorResponse {
   errors?: ErrorCollection;
   statusCode?: HttpStatus;
-}
-
-export interface ApiError {
-  message: string[];
-  error: string;
-  statusCode: number;
 }

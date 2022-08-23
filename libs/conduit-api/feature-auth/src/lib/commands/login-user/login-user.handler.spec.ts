@@ -12,7 +12,7 @@ import {
   mockUserService,
   response,
   user,
-} from '../test-stubs';
+} from '../../test-stubs';
 import { UserService } from '../../services/user.service';
 import { AuthService } from '../../services/auth.service';
 import { TokenService } from '../../services/token.service';

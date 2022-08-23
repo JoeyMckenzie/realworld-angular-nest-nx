@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-ts-comment */
 import { User } from '@prisma/client';
 import { AuthenticationResponse } from '@realworld-angular-nest-nx/global';
 
@@ -24,15 +25,20 @@ export const response = {
 } as AuthenticationResponse;
 
 export const mockUserService = {
+  // @ts-ignore
   getUserByEmailOrUsername: jest.fn(),
+  // @ts-ignore
   createUser: jest.fn(),
 };
 
 export const mockAuthService = {
+  // @ts-ignore
   generateHashedPasswordWithSalt: jest.fn(),
+  // @ts-ignore
   validatePassword: jest.fn(),
 };
 
 export const mockTokenService = {
+  // @ts-ignore
   generateToken: jest.fn(),
 };
