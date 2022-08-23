@@ -4,10 +4,10 @@ import { PrismaService } from '@realworld-angular-nest-nx/conduit-api/data-acces
 import { Observable, from } from 'rxjs';
 
 @Injectable()
-export class UserService {
+export class UsersRepository {
   constructor(private prisma: PrismaService) {}
 
-  getById(userId: string): Observable<User> {
+  getUserById(userId: string): Observable<User> {
     const existingUser = this.prisma.user.findFirst({
       where: {
         id: userId,
@@ -28,20 +28,6 @@ export class UserService {
     });
 
     return from(existingUser);
-  }
-
-  getUserByEmailOrUsernameAsPromise(
-    email: string,
-    username: string
-  ): Promise<User> {
-    return this.prisma.user.findFirst({
-      where: {
-        username,
-        OR: {
-          email,
-        },
-      },
-    });
   }
 
   createUser(

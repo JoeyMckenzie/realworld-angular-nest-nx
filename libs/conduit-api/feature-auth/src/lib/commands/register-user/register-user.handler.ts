@@ -9,7 +9,7 @@ import {
   ofErrors,
 } from '@realworld-angular-nest-nx/global';
 import { TokenService } from '../../services/token.service';
-import { UserService } from '../../services/user.service';
+import { UsersRepository } from '../../services/user.service';
 import { AuthService } from '../../services/auth.service';
 
 @CommandHandler(RegisterUserCommand)
@@ -21,7 +21,7 @@ export class RegisterUserHandler
   constructor(
     private readonly authService: AuthService,
     private readonly tokenService: TokenService,
-    private readonly userService: UserService
+    private readonly userService: UsersRepository
   ) {}
 
   execute(command: RegisterUserCommand): Promise<AuthenticationResponse> {

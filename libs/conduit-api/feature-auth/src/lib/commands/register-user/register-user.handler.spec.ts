@@ -1,5 +1,5 @@
 import { Test } from '@nestjs/testing';
-import { from, of } from 'rxjs';
+import { firstValueFrom, from, map, of, tap } from 'rxjs';
 import { RegisterUserHandler } from './register-user.handler';
 import { HttpStatus } from '@nestjs/common';
 import {
@@ -9,11 +9,11 @@ import {
 import {
   mockAuthService,
   mockTokenService,
-  mockUserService,
+  mockUserRepository,
   response,
   user,
 } from '../../test-stubs';
-import { UserService } from '../../services/user.service';
+import { UsersRepository } from '../../services/user.service';
 import { AuthService } from '../../services/auth.service';
 import { TokenService } from '../../services/token.service';
 import { RegisterUserCommand } from './register-user.command';
@@ -28,7 +28,7 @@ const command = new RegisterUserCommand(request);
 
 describe(RegisterUserHandler.name, () => {
   let handler: RegisterUserHandler;
-  let userService: UserService;
+  let usersRepository: UsersRepository;
   let authService: AuthService;
   let tokenService: TokenService;
 
@@ -38,36 +38,45 @@ describe(RegisterUserHandler.name, () => {
   let generateTokenSpy: jest.SpyInstance;
 
   beforeEach(async () => {
-    const module = await Test.createTestingModule({
-      providers: [
-        RegisterUserHandler,
-        {
-          provide: UserService,
-          useValue: mockUserService,
-        },
-        {
-          provide: AuthService,
-          useValue: mockAuthService,
-        },
-        {
-          provide: TokenService,
-          useValue: mockTokenService,
-        },
-      ],
-    }).compile();
+    const initTestingModule$ = from(
+      Test.createTestingModule({
+        providers: [
+          RegisterUserHandler,
+          {
+            provide: UsersRepository,
+            useValue: mockUserRepository,
+          },
+          {
+            provide: AuthService,
+            useValue: mockAuthService,
+          },
+          {
+            provide: TokenService,
+            useValue: mockTokenService,
+          },
+        ],
+      }).compile()
+    ).pipe(
+      tap((module) => {
+        handler = module.get(RegisterUserHandler);
+        usersRepository = module.get(UsersRepository);
+        authService = module.get(AuthService);
+        tokenService = module.get(TokenService);
 
-    handler = module.get(RegisterUserHandler);
-    userService = module.get(UserService);
-    authService = module.get(AuthService);
-    tokenService = module.get(TokenService);
-
-    getExistingUserSpy = jest.spyOn(userService, 'getUserByEmailOrUsername');
-    createUserSpy = jest.spyOn(userService, 'createUser');
-    generateTokenSpy = jest.spyOn(tokenService, 'generateToken');
-    generatePasswordSpy = jest.spyOn(
-      authService,
-      'generateHashedPasswordWithSalt'
+        getExistingUserSpy = jest.spyOn(
+          usersRepository,
+          'getUserByEmailOrUsername'
+        );
+        createUserSpy = jest.spyOn(usersRepository, 'createUser');
+        generateTokenSpy = jest.spyOn(tokenService, 'generateToken');
+        generatePasswordSpy = jest.spyOn(
+          authService,
+          'generateHashedPasswordWithSalt'
+        );
+      })
     );
+
+    await firstValueFrom(initTestingModule$);
   });
 
   afterEach(() => {

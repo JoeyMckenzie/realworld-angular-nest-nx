@@ -6,7 +6,7 @@ import { LoginUserHandler } from './commands/login-user/login-user.handler';
 import { RegisterUserHandler } from './commands/register-user/register-user.handler';
 import { AuthService } from './services/auth.service';
 import { TokenService } from './services/token.service';
-import { UserService } from './services/user.service';
+import { UsersRepository } from './services/user.service';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './jwt.strategy';
@@ -31,7 +31,7 @@ import { GetCurrentUserHandler } from './queries/get-current-user/get-current-us
     GetCurrentUserHandler,
     AuthService,
     TokenService,
-    UserService,
+    UsersRepository,
     JwtStrategy,
   ],
 })

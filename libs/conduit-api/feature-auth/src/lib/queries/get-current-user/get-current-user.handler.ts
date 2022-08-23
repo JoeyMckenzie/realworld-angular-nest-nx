@@ -1,14 +1,15 @@
 import { IQueryHandler, QueryHandler } from '@nestjs/cqrs';
 import { HttpStatus, Logger } from '@nestjs/common';
-import { firstValueFrom, of } from 'rxjs';
-import { catchError, switchMap } from 'rxjs/operators';
+import { firstValueFrom } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import {
   AuthenticationResponse,
   UserDto,
   ofErrors,
+  withErrors,
 } from '@realworld-angular-nest-nx/global';
 import { TokenService } from '../../services/token.service';
-import { UserService } from '../../services/user.service';
+import { UsersRepository } from '../../services/user.service';
 import { GetCurrentUserQuery } from './get-current-user.query';
 
 @QueryHandler(GetCurrentUserQuery)
@@ -19,15 +20,15 @@ export class GetCurrentUserHandler
 
   constructor(
     private readonly tokenService: TokenService,
-    private readonly userService: UserService
+    private readonly usersRepository: UsersRepository
   ) {}
 
   execute(query: GetCurrentUserQuery): Promise<AuthenticationResponse> {
-    const getCurrentUser$ = this.userService.getById(query.userId).pipe(
-      switchMap((existingUser) => {
+    const getCurrentUser$ = this.usersRepository.getUserById(query.userId).pipe(
+      map((existingUser) => {
         if (!existingUser) {
           this.logger.error('user was not found');
-          return ofErrors<AuthenticationResponse>(
+          return withErrors<AuthenticationResponse>(
             {
               user: 'user does not exist',
             },
@@ -51,7 +52,7 @@ export class GetCurrentUserHandler
           token,
         };
 
-        return of({ user: mappedUser } as AuthenticationResponse);
+        return { user: mappedUser } as AuthenticationResponse;
       }),
       catchError((error) => {
         this.logger.error(error);

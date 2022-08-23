@@ -24,7 +24,9 @@ export const response = {
   },
 } as AuthenticationResponse;
 
-export const mockUserService = {
+export const mockUserRepository = {
+  // @ts-ignore
+  getUserById: jest.fn(),
   // @ts-ignore
   getUserByEmailOrUsername: jest.fn(),
   // @ts-ignore

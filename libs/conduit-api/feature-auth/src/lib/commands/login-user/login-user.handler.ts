@@ -1,15 +1,16 @@
 import { CommandHandler, ICommandHandler } from '@nestjs/cqrs';
 import { HttpStatus, Logger } from '@nestjs/common';
-import { firstValueFrom, of } from 'rxjs';
-import { catchError, switchMap } from 'rxjs/operators';
+import { firstValueFrom } from 'rxjs';
+import { catchError, map } from 'rxjs/operators';
 import { LoginUserCommand } from './login-user.command';
 import {
   AuthenticationResponse,
   UserDto,
   ofErrors,
+  withErrors,
 } from '@realworld-angular-nest-nx/global';
 import { TokenService } from '../../services/token.service';
-import { UserService } from '../../services/user.service';
+import { UsersRepository } from '../../services/user.service';
 import { AuthService } from '../../services/auth.service';
 
 @CommandHandler(LoginUserCommand)
@@ -19,17 +20,17 @@ export class LoginUserHandler implements ICommandHandler<LoginUserCommand> {
   constructor(
     private readonly authService: AuthService,
     private readonly tokenService: TokenService,
-    private readonly userService: UserService
+    private readonly userRepository: UsersRepository
   ) {}
 
   execute(command: LoginUserCommand): Promise<AuthenticationResponse> {
-    const loginUserIfExists$ = this.userService
+    const loginUserIfExists$ = this.userRepository
       .getUserByEmailOrUsername(command.email, command.username)
       .pipe(
-        switchMap((existingUser) => {
+        map((existingUser) => {
           if (!existingUser) {
             this.logger.error('user was not found');
-            return ofErrors<AuthenticationResponse>(
+            return withErrors<AuthenticationResponse>(
               {
                 user: ['user does not exist'],
               },
@@ -49,7 +50,7 @@ export class LoginUserHandler implements ICommandHandler<LoginUserCommand> {
 
           if (!isValidPassword) {
             this.logger.error('login attempt was invalid');
-            return ofErrors<AuthenticationResponse>(
+            return withErrors<AuthenticationResponse>(
               {
                 user: ['invalid password for user'],
               },
@@ -71,13 +72,13 @@ export class LoginUserHandler implements ICommandHandler<LoginUserCommand> {
             token,
           };
 
-          return of({ user: mappedUser } as AuthenticationResponse);
+          return { user: mappedUser } as AuthenticationResponse;
         }),
         catchError((error) => {
           this.logger.error(error);
           return ofErrors<AuthenticationResponse>(
             {
-              errors: [error.toString()],
+              message: error.toString(),
             },
             HttpStatus.INTERNAL_SERVER_ERROR
           );
